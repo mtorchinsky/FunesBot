@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+from .chat import chat_chain
+
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -35,13 +37,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a message when the command /help is issued."""
-    print(update)
     await update.message.reply_text(f"Enter '{update.message.text} help' for help")
 
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
-    await update.message.reply_text(update.message.text)
+    await update.message.reply_text(chat_chain.predict(human_input=update.message.text))
 
 
 @app.on_event('startup')
