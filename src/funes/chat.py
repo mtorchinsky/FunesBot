@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor, wait
+
 from langchain import LLMChain, PromptTemplate
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.callbacks.manager import CallbackManager
@@ -23,10 +25,19 @@ prompt = PromptTemplate(
 )
 
 
-chat_chain = LLMChain(
-    llm=llm,
-    prompt=prompt,
-    verbose=True,
-    memory=ConversationBufferWindowMemory(k=2),
-)
 
+executor = ThreadPoolExecutor(max_workers=1)
+
+user_chats = {}
+
+async def chat(userid: str, message: str):
+    if not userid in user_chats:
+        user_chats[userid] = LLMChain(
+            llm=llm,
+            prompt=prompt,
+            verbose=True,
+            memory=ConversationBufferWindowMemory(k=2),
+        )
+    chat_chain = user_chats[userid]
+
+    return chat_chain.predict(human_input=message)

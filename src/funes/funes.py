@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-from .chat import chat_chain
+from .chat import chat
 
 # Enable logging
 logging.basicConfig(
@@ -42,7 +42,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
-    await update.message.reply_text(chat_chain.predict(human_input=update.message.text))
+    logger.info(f"Message incoming: {update}")
+    reply = await chat(update.message.from_user.id, update.message.text)
+    await update.message.reply_text(reply)
 
 
 @app.on_event('startup')
