@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor, wait
+import asyncio
 
 from langchain import LLMChain, PromptTemplate
 from langchain.memory import ConversationBufferWindowMemory
@@ -30,7 +31,7 @@ executor = ThreadPoolExecutor(max_workers=1)
 
 user_chats = {}
 
-async def chat(userid: str, message: str):
+def _chat(userid: str, message: str):
     if not userid in user_chats:
         user_chats[userid] = LLMChain(
             llm=llm,
@@ -40,4 +41,12 @@ async def chat(userid: str, message: str):
         )
     chat_chain = user_chats[userid]
 
-    return chat_chain.predict(human_input=message)
+    future = executor.submit(chat_chain.predict, human_input=message)
+    wait([future])
+    result = future.result()
+    print(result)
+    return result
+
+async def chat(userid: str, message: str, callback):
+    reply = await asyncio.to_thread(_chat, userid, message)
+    await callback(reply)
